@@ -137,7 +137,7 @@ def main():
             })
             print('Not found ! -- ', keyword)
     driver.quit()
-    filename = uniquify('output.csv')
+    filename = uniquify('Analysis_Result.csv')
     pd.DataFrame(output).to_csv(filename, index=False)
     sg.Popup("Keyword analysis has been finished", title='Done',)
 
