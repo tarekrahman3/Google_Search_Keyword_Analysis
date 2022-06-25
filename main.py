@@ -11,10 +11,6 @@ from selenium_stealth import stealth
 import PySimpleGUI as sg
 from webdriver_manager.chrome import ChromeDriverManager
 
-"""
-pip3 install undetected_chromedriver PySimpleGUI selenium selenium_stealth pandas webdriver_manager
-"""
-
 
 def ui():
     layout = [
@@ -106,31 +102,41 @@ def main():
                 if not "captcha" in (driver.page_source):
                     break
         exist = False
+        try:
+            driver.execute_script('arguments[0].remove()', driver.find_element(
+                By.XPATH, '//span[text()="People also ask"]/ancestor::div[3]'))
+        except:
+            pass
         search_results = driver.find_elements(
-            By.XPATH, '//div[@data-async-context and div[contains(@class,"g")]]/div[contains(@class,"g")]')
+            By.XPATH, '//*[@class="yuRUbf" or @class="ct3b9e"]')
         for index, search_result in enumerate(search_results):
             search_result_title = search_result.find_element(
                 By.XPATH, './/h3').text
             search_result_url = search_result.find_element(
-                By.XPATH, './/a[@href and @data-ved]').get_attribute('href')
+                By.XPATH, './/a').get_attribute('href')
             if our_domain in search_result_url:
                 print(keyword, "; Matched at: ", index+1, '; Title: ',
                       search_result_title, '; URL: ', search_result_url)
                 output.append({
+                    'Google Search URL': driver.current_url,
+                    'Total Results': len(search_results),
                     'Found': True,
                     'Keyword': keyword,
-                    'Matched at': index,
-                    'search_result_title': search_result_title,
-                    'search_result_url': search_result_url
+                    'Matched at': index+1,
+                    'search result title': search_result_title,
+                    'search result url': search_result_url
                 })
                 exist = True
+                break
         if exist == False:
             output.append({
+                'Google Search URL': driver.current_url,
+                'Total Results': len(search_results),
                 'Found': False,
                 'Keyword': keyword,
                 'Matched at': None,
-                'search_result_title': None,
-                'search_result_url': None
+                'search result title': None,
+                'search result url': None
             })
             print('Not found ! ', keyword)
     pd.DataFrame(output).to_csv('output.csv', index=False)
