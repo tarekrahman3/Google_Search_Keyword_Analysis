@@ -2,6 +2,7 @@ import pandas as pd
 import json
 import os
 import time
+import re
 import undetected_chromedriver as webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -73,6 +74,9 @@ def main():
         exit()
     print(values)
     our_domain = values[0].strip()
+    if not isinstance(re.match('^(((?!\-))(xn\-\-)?[a-z0-9\-_]{0,61}[a-z0-9]{1,1}\.)*(xn\-\-)?([a-z0-9\-]{1,61}|[a-z0-9\-]{1,30})\.[a-z]{2,}$', our_domain), re.Match):
+        sg.Popup('Error! an invalid domain was provided')
+        exit()
     if our_domain == '':
         sg.Popup('Error! no domain provided. the program is exiting')
         exit()
