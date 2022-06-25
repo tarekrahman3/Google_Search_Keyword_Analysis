@@ -6,8 +6,8 @@ import undetected_chromedriver as webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+# from selenium.webdriver.support.ui import WebDriverWait
+# from selenium.webdriver.support import expected_conditions as EC
 from selenium_stealth import stealth
 import PySimpleGUI as sg
 from webdriver_manager.chrome import ChromeDriverManager
@@ -92,11 +92,11 @@ def main():
         #     EC.presence_of_element_located((By.XPATH, '//input')))
         driver.get(
             f"https://www.google.com/search?q={quote(keyword.strip())}&gl=us&hl=en&pws=0")
-        time.sleep(1)
-        if "captcha" in driver.page_source:
+        time.sleep(1.5)
+        if "and not a robot" in driver.page_source:
             print('captcha !!! please solve the puzzle...')
             while True:
-                if not "captcha" in driver.page_source:
+                if not "and not a robot" in driver.page_source:
                     break
         exist = False
         try:
