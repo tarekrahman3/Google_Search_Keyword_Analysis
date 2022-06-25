@@ -1,5 +1,6 @@
 import pandas as pd
 import json
+import os
 import time
 import undetected_chromedriver as webdriver
 from selenium.webdriver.chrome.service import Service
@@ -10,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium_stealth import stealth
 import PySimpleGUI as sg
 from webdriver_manager.chrome import ChromeDriverManager
+from urllib.parse import quote
 
 
 def ui():
@@ -29,7 +31,6 @@ def ui():
 
 
 def readyDriver():
-    # executable_path="chromedriver.exe"
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     stealth(driver,
             languages=["en-US", "en"],
@@ -52,10 +53,18 @@ def injectCookies(driver, cookie_file):
             c = {'name': cookie['name'], 'value': cookie['value'],
                  'domain': cookie['domain']}
             driver.add_cookie(c)
-            # print(c)
         except:
             pass
     driver.get('https://google.com')
+
+
+def uniquify(path):
+    filename, extension = os.path.splitext(path)
+    counter = 1
+    while os.path.exists(path):
+        path = filename + " (" + str(counter) + ")" + extension
+        counter += 1
+    return path
 
 
 def main():
@@ -63,7 +72,7 @@ def main():
     if event == 'Cancel':
         exit()
     print(values)
-    our_domain = values[0]
+    our_domain = values[0].strip()
     if our_domain == '':
         sg.Popup('Error! no domain provided. the program is exiting')
         exit()
@@ -78,28 +87,16 @@ def main():
     driver = readyDriver()
     injectCookies(driver, cookie_file)
     output = []
-    driver.get('https://www.google.com/?gl=us&hl=en&pws=0')
-    driver.find_element(
-        By.XPATH, '//input[@name="q"]').send_keys('This is a test')
-    driver.find_element(By.XPATH, '//input[@name="q"]').send_keys(Keys.ENTER)
-    time.sleep(2)
-    if "captcha" in (driver.page_source):
-        print('captcha !!! please solve the puzzle...')
-        while True:
-            if not "captcha" in (driver.page_source):
-                break
     for keyword in keywords:
-        WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.XPATH, '//input')))
-        driver.find_element(By.XPATH, '//input').clear()
-        driver.find_element(By.XPATH, '//input').send_keys(keyword)
-        driver.find_element(
-            By.XPATH, '//input[@name="q"]').send_keys(Keys.ENTER)
+        # WebDriverWait(driver, 5).until(
+        #     EC.presence_of_element_located((By.XPATH, '//input')))
+        driver.get(
+            f"https://www.google.com/search?q={quote(keyword.strip())}&gl=us&hl=en&pws=0")
         time.sleep(1)
-        if "captcha" in (driver.page_source):
+        if "captcha" in driver.page_source:
             print('captcha !!! please solve the puzzle...')
             while True:
-                if not "captcha" in (driver.page_source):
+                if not "captcha" in driver.page_source:
                     break
         exist = False
         try:
@@ -138,8 +135,11 @@ def main():
                 'search result title': None,
                 'search result url': None
             })
-            print('Not found ! ', keyword)
-    pd.DataFrame(output).to_csv('output.csv', index=False)
+            print('Not found ! -- ', keyword)
+    driver.quit()
+    filename = uniquify('output.csv')
+    pd.DataFrame(output).to_csv(filename, index=False)
+    sg.Popup("Keyword analysis has been finished", title='Done',)
 
 
 if __name__ == '__main__':
